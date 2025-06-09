@@ -1,53 +1,60 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"> <!-- Thymeleaf এর জন্য XML namespace -->
 <head>
     <meta charset="UTF-8">
-    <title>Add New Book</title>
+    <title>New Book</title>
 
-    <!-- Bootstrap CSS for styling -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS লিংক -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-<!-- Include header fragment -->
+
+<!-- হেডার ফ্র্যাগমেন্ট ইনক্লুড করা হয়েছে -->
 <div th:insert="~{fragments :: header}"></div>
+
 <div class="container">
+    <h2>Add New Book</h2>
 
-    <!-- Page heading -->
-    <h1 class="text-center mt-4 mb-4">Add New Book</h1>
+    <!-- 📤 ফর্ম: এখানে ব্যাকএন্ডে পাঠানোর জন্য থাইমলিফ ফর্ম তৈরি -->
+    <!-- th:action="@{/saveBook}" মানে ফর্মটি /saveBook URL-এ সাবমিট হবে -->
+    <!-- th:object="${book}" মানে form টি BookDto অবজেক্টের সাথে bind করা -->
+    <form th:action="@{/saveBook}" th:object="${book}" method="post" class="row g-3">
 
-    <!--
-        Form to submit a new book
-        th:action="@{/saveBook}" - form will submit to /saveBook URL (handled by controller)
-        th:object="${book}" - binds the form to a Book object in the model
-        method="POST" - data will be submitted using POST request
-    -->
-    <form th:action="@{/saveBook}" th:object="${book}" method="POST">
-
-        <!-- Input field for book title -->
-        <div class="mb-3">
-            <label for="title" class="form-label">Title</label>
-
-            <!--
-                th:field="*{title}" - binds this input to the 'title' property of the Book object
-                'required' - makes the field mandatory
-            -->
-            <input type="text" class="form-control" id="title" th:field="*{title}" required>
+        <!-- 🔹 Title ইনপুট ফিল্ড -->
+        <!-- th:field="*{title}" মানে BookDto এর title ফিল্ডে ডেটা bind হবে -->
+        <div class="col-md-6">
+            <label class="form-label">Title</label>
+            <input type="text" th:field="*{title}" class="form-control" required/>
         </div>
 
-        <!-- Input field for book author -->
-        <div class="mb-3">
-            <label for="author" class="form-label">Author</label>
-            <input type="text" class="form-control" id="author" th:field="*{author}" required>
+        <!-- 🔹 Author ইনপুট -->
+        <div class="col-md-6">
+            <label class="form-label">Author</label>
+            <input type="text" th:field="*{author}" class="form-control" required/>
         </div>
 
-        <!-- Input field for book ISBN -->
-        <div class="mb-3">
-            <label for="isbn" class="form-label">ISBN</label>
-            <input type="text" class="form-control" id="isbn" th:field="*{isbn}" required>
+        <!-- 🔹 ISBN ইনপুট -->
+        <div class="col-md-6">
+            <label class="form-label">ISBN</label>
+            <input type="text" th:field="*{isbn}" class="form-control" required/>
         </div>
 
-        <!-- Submit button to send form data -->
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <!-- 🔹 ক্যাটেগরি ড্রপডাউন -->
+        <!-- th:each="cat : ${categories}" দিয়ে প্রতিটি ক্যাটেগরির নাম ও ID দেখানো -->
+        <!-- th:field="*{categoryId}" দিয়ে BookDto এর categoryId সেট হবে -->
+        <div class="col-md-6">
+            <label class="form-label">Category</label>
+            <select th:field="*{categoryId}" class="form-select" required>
+                <option value="">--Select Category--</option>
+                <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+            </select>
+        </div>
+
+        <!-- 🔘 সাবমিট ও ব্যাক বাটন -->
+        <div class="col-12">
+            <button type="submit" class="btn btn-success">Save</button>
+            <a th:href="@{/}" class="btn btn-secondary">Back</a>
+        </div>
     </form>
 </div>
 </body>

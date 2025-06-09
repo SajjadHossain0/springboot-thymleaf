@@ -1,84 +1,57 @@
 package com.example.demo.controller;
 
 import com.example.demo.Service.BookService;
+import com.example.demo.dto.BookDto;
 import com.example.demo.model.Book;
+import com.example.demo.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Controller for handling book-related web requests
- * বই সম্পর্কিত ওয়েব রিকোয়েস্ট হ্যান্ডল করার কন্ট্রোলার
- */
-@Controller // Marks this as a Spring MVC Controller (স্প্রিং MVC কন্ট্রোলার হিসেবে চিহ্নিত)
+@Controller // এই ক্লাসটি একটি Spring MVC Controller, যেটা HTTP request হ্যান্ডল করে
 public class BookController {
 
-    @Autowired // Injects BookService implementation (BookService ইম্প্লিমেন্টেশন ইনজেক্ট করে)
-    private BookService bookService;
+    @Autowired
+    private BookService bookService; // Book সম্পর্কিত সার্ভিস মেথড ব্যবহারের জন্য
 
-    /**
-     * Displays home page with list of all books
-     * সব বইয়ের তালিকা সহ হোম পেজ প্রদর্শন করে
-     * @param model View model to pass data to template (টেমপ্লেটে ডাটা পাঠানোর মডেল)
-     * @return index view (index টেমপ্লেট)
-     */
-    @GetMapping("/") // Handles GET requests to root URL (রুট URL-এর GET রিকোয়েস্ট হ্যান্ডল করে)
+    @Autowired
+    private CategoryRepository categoryRepo; // ক্যাটেগরি ডেটা ফর্মে দেখানোর জন্য
+
+    // হোমপেইজ দেখানোর জন্য: সব বইয়ের তালিকা মডেলে পাঠিয়ে index পেইজ দেখায়
+    @GetMapping("/")
     public String viewHomePage(Model model) {
-        // Add the list of books to the model to display in the view
-        model.addAttribute("listBooks", bookService.getAllBooks());
-        return "index"; // Corresponds to index.html (index.html টেমপ্লেটের সাথে মিলে যায়)
+        model.addAttribute("listBooks", bookService.getAllBooks()); // সব বইয়ের তালিকা মডেলে যুক্ত
+        return "index"; // index.html পেইজ রিটার্ন করে
     }
 
-    /**
-     * Shows form for adding a new book
-     * নতুন বই যোগ করার ফর্ম দেখায়
-     * @param model View model (ভিউ মডেল)
-     * @return new_book view (new_book টেমপ্লেট)
-     */
+    // নতুন বই যোগ করার ফর্ম দেখানোর জন্য
     @GetMapping("/showNewBookForm")
     public String showNewBookForm(Model model) {
-        Book book = new Book(); // Create empty book object (খালি বই অবজেক্ট তৈরি করে)
-        model.addAttribute("book", book); // Add to model (মডেলে যোগ করে)
-        return "new_book"; // Corresponds to new_book.html (new_book.html টেমপ্লেটের সাথে মিলে যায়)
+        model.addAttribute("book", new BookDto()); // খালি BookDto পাঠানো হয় ফর্ম বাউন্ড করার জন্য
+        model.addAttribute("categories", categoryRepo.findAll()); // সব ক্যাটেগরি পাঠানো হয় dropdown এর জন্য
+        return "new_book"; // new_book.html ফর্ম পেইজ রিটার্ন
     }
 
-    /**
-     * Saves a book to database
-     * ডাটাবেসে একটি বই সংরক্ষণ করে
-     * @param book Book object from form submission (ফর্ম সাবমিশন থেকে বই অবজেক্ট)
-     * @return Redirect to home page (হোম পেজে রিডাইরেক্ট করে)
-     */
-    @PostMapping("/saveBook") // Handles POST requests to /saveBook (/saveBook-এ POST রিকোয়েস্ট হ্যান্ডল করে)
-    public String saveBook(@ModelAttribute("book") Book book) {
-        bookService.saveBook(book); // Save book via service (সার্ভিসের মাধ্যমে বই সংরক্ষণ করে)
-        return "redirect:/"; // Redirect prevents duplicate submissions (রিডাইরেক্ট ডুপ্লিকেট সাবমিশন প্রতিরোধ করে)
+    // নতুন বই সেভ করার বা পুরনো বই আপডেট করার জন্য
+    @PostMapping("/saveBook")
+    public String saveBook(@ModelAttribute("book") BookDto bookDto) {
+        bookService.saveBook(bookDto); // সার্ভিস মেথডে পাঠিয়ে ডেটা সেভ করানো হয়
+        return "redirect:/"; // সেভ শেষে হোমপেইজে রিডিরেক্ট
     }
 
-    /**
-     * Shows form for updating existing book
-     * বিদ্যমান বই আপডেট করার ফর্ম দেখায়
-     * @param id Book ID to update (আপডেট করার বইয়ের আইডি)
-     * @param model View model (ভিউ মডেল)
-     * @return update_book view (update_book টেমপ্লেট)
-     */
-    @GetMapping("/showFormForUpdate/{id}") // Handles path variable (পাথ ভ্যারিয়েবল হ্যান্ডল করে)
-    public String showFormForUpdate(@PathVariable(value = "id") long id, Model model) {
-        Book book = bookService.getBookById(id); // Get book by ID (আইডি দিয়ে বই পাওয়া)
-        // Add the book to the model so Thymeleaf can pre-fill the form
-        model.addAttribute("book", book);
-        return "update_book"; // Corresponds to update_book.html (update_book.html টেমপ্লেটের সাথে মিলে যায়)
+    // কোনো বই আপডেট করার ফর্ম দেখানোর জন্য
+    @GetMapping("/showFormForUpdate/{id}")
+    public String showFormForUpdate(@PathVariable Long id, Model model) {
+        model.addAttribute("book", bookService.getBookById(id)); // ID অনুযায়ী বইয়ের তথ্য এনে মডেলে যুক্ত
+        model.addAttribute("categories", categoryRepo.findAll()); // ক্যাটেগরি লিস্ট ফর্মে দেখানোর জন্য
+        return "update_book"; // update_book.html ফর্ম পেইজ রিটার্ন
     }
 
-    /**
-     * Deletes a book by ID
-     * আইডি দিয়ে একটি বই মুছে ফেলে
-     * @param id Book ID to delete (মুছে ফেলার বইয়ের আইডি)
-     * @return Redirect to home page (হোম পেজে রিডাইরেক্ট করে)
-     */
+    // কোনো বই ডিলিট করার জন্য
     @GetMapping("/deleteBook/{id}")
-    public String deleteBook(@PathVariable(value = "id") long id) {
-        bookService.deleteBookById(id); // Delete book by ID (আইডি দিয়ে বই মুছে ফেলা)
-        return "redirect:/"; // Redirect to home page (হোম পেজে রিডাইরেক্ট করা)
+    public String deleteBook(@PathVariable Long id) {
+        bookService.deleteBook(id); // ID অনুযায়ী বই ডিলিট করা হয়
+        return "redirect:/"; // ডিলিট শেষে হোমপেইজে রিডিরেক্ট
     }
 }

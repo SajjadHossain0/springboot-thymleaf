@@ -1,43 +1,39 @@
 package com.example.demo.Service;
 
+import com.example.demo.dto.BookDto;
 import com.example.demo.model.Book;
 import java.util.List;
 
 /**
- * Service layer interface for Book operations
- * বই সম্পর্কিত অপারেশনের সার্ভিস লেয়ার ইন্টারফেস
+ * BookService ইন্টারফেসটি বই সংক্রান্ত বিভিন্ন সার্ভিস মেথড ডিফাইন করে।
+ * এখানে CRUD অপারেশনগুলো (Create, Retrieve, Update, Delete) জন্য মেথড ডিক্লেয়ার করা হয়েছে।
  *
- * Defines the business logic contract for Book management
- * বই ম্যানেজমেন্টের বিজনেস লজিকের চুক্তি (কন্ট্রাক্ট) নির্ধারণ করে
+ * ডাটা ট্রান্সফার অবজেক্ট (DTO) ব্যবহৃত হয়েছে, যা Service ও Controller এর মধ্যে ডাটা আদান প্রদান সহজ করে।
  */
 public interface BookService {
 
      /**
-      * Get all books from database
-      * ডাটাবেস থেকে সব বই পেতে
-      * @return List of all books (সব বইয়ের লিস্ট)
+      * ডাটাবেস থেকে সব বইয়ের তথ্য নিয়ে আসে এবং BookDto এর লিস্ট হিসেবে রিটার্ন করে।
+      * @return List<BookDto> - সব বইয়ের ডাটা
       */
-     List<Book> getAllBooks();
+     List<BookDto> getAllBooks();
 
      /**
-      * Save or update a book
-      * একটি বই সেভ বা আপডেট করতে
-      * @param book the book entity to save (সেভ করার বই এনটিটি)
+      * নির্দিষ্ট আইডি অনুযায়ী একটি বইয়ের তথ্য নিয়ে আসে।
+      * @param id বইয়ের ইউনিক আইডি
+      * @return BookDto - ঐ বইয়ের তথ্য, যদি থাকে; না হলে null
       */
-     void saveBook(Book book);
+     BookDto getBookById(Long id);
 
      /**
-      * Find a book by its ID
-      * আইডি দিয়ে একটি বই খুঁজে পেতে
-      * @param id the book ID (বইয়ের আইডি)
-      * @return the found book (খুঁজে পাওয়া বই)
+      * নতুন বই যোগ করা বা বিদ্যমান বইয়ের তথ্য আপডেট করার জন্য।
+      * @param bookDto বইয়ের ডাটা যা সংরক্ষণ বা আপডেট করতে হবে
       */
-     Book getBookById(Long id);
+     void saveBook(BookDto bookDto);
 
      /**
-      * Delete a book by its ID
-      * আইডি দিয়ে একটি বই ডিলিট করতে
-      * @param id the book ID to delete (ডিলিট করার বইয়ের আইডি)
+      * নির্দিষ্ট আইডি অনুযায়ী বই মুছে ফেলার জন্য।
+      * @param id মুছে ফেলতে চাই এমন বইয়ের আইডি
       */
-     void deleteBookById(Long id);
+     void deleteBook(Long id);
 }

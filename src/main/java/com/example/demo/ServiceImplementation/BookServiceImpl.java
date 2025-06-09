@@ -1,74 +1,105 @@
 package com.example.demo.ServiceImplementation;
 
 import com.example.demo.Service.BookService;
+import com.example.demo.dto.BookDto;
 import com.example.demo.model.Book;
+import com.example.demo.model.Category;
 import com.example.demo.repository.BookRepository;
+import com.example.demo.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Optional;
 
-/**
- * Implementation of BookService interface
- * BookService ইন্টারফেসের বাস্তবায়ন
- *
- * Contains the actual business logic for book operations
- * বই সম্পর্কিত অপারেশনের প্রকৃত বিজনেস লজিক ধারণ করে
- */
-@Service // Marks this as a Spring service component (স্প্রিং সার্ভিস কম্পোনেন্ট হিসেবে চিহ্নিত)
+@Service // Spring কে বলে এই ক্লাসটা একটা Service ক্লাস যা Business Logic ধারণ করে
 public class BookServiceImpl implements BookService {
-
-    @Autowired // Automatically injects BookRepository (BookRepository অটোমেটিক ইনজেক্ট করে)
-    private BookRepository bookRepository;
+    @Autowired
+    private BookRepository bookRepo; // BookRepository অটোইনজেক্ট করে, ডাটাবেস অপারেশন করার জন্য
+    @Autowired
+    private CategoryRepository categoryRepo; // CategoryRepository অটোইনজেক্ট করে, ক্যাটেগরি ডাটা রিট্রিভ/সেভ করার জন্য
 
     /**
-     * Fetches all books from database
-     * ডাটাবেস থেকে সব বই সংগ্রহ করে
-     * @return List of all books (সব বইয়ের তালিকা)
+     * সব বইয়ের ডাটা নিয়ে আসার মেথড
      */
     @Override
-    public List<Book> getAllBooks() {
-        // Uses repository's findAll() method
-        // রিপোজিটোরির findAll() মেথড ব্যবহার করে
-        return bookRepository.findAll();
+    public List<BookDto> getAllBooks() {
+        List<Book> books = bookRepo.findAll(); // ডাটাবেস থেকে সব Book entity নিয়ে আসি
+        List<BookDto> bookDtos = new ArrayList<>(); // নতুন একটা খালি BookDto তালিকা তৈরি করি
+
+        for (Book book : books) { // প্রতিটা Book entity এর জন্য
+            BookDto dto = new BookDto(); // নতুন BookDto অবজেক্ট তৈরি করি
+            dto.setId(book.getId()); // Book এর id সেট করি
+            dto.setTitle(book.getTitle()); // Book এর title সেট করি
+            dto.setAuthor(book.getAuthor()); // Book এর author সেট করি
+            dto.setIsbn(book.getIsbn()); // Book এর isbn সেট করি
+
+            if (book.getCategory() != null) { // যদি Book এর সাথে কোনো Category যুক্ত থাকে
+                dto.setCategoryId(book.getCategory().getId()); // Category এর id সেট করি
+                dto.setCategoryName(book.getCategory().getName()); // Category এর name সেট করি
+            }
+
+            bookDtos.add(dto); // BookDto টা List এ যোগ করি
+        }
+
+        return bookDtos; // সব BookDto এর List রিটার্ন করি
     }
 
     /**
-     * Saves or updates a book
-     * একটি বই সংরক্ষণ বা আপডেট করে
-     * @param book The book to save (সংরক্ষণ করার বই)
+     * নির্দিষ্ট আইডির বইয়ের ডাটা নিয়ে আসার মেথড
      */
     @Override
-    public void saveBook(Book book) {
-        // Uses repository's save() method
-        // রিপোজিটোরির save() মেথড ব্যবহার করে
-        bookRepository.save(book);
+    public BookDto getBookById(Long id) {
+        Optional<Book> optionalBook = bookRepo.findById(id); // ডাটাবেস থেকে id দিয়ে Book খুঁজি
+
+        if (optionalBook.isPresent()) { // যদি Book পাওয়া যায়
+            Book book = optionalBook.get(); // Book entity নিয়ে আসি
+            BookDto dto = new BookDto(); // নতুন BookDto তৈরি করি
+            dto.setId(book.getId());
+            dto.setTitle(book.getTitle());
+            dto.setAuthor(book.getAuthor());
+            dto.setIsbn(book.getIsbn());
+
+            if (book.getCategory() != null) {
+                dto.setCategoryId(book.getCategory().getId());
+                dto.setCategoryName(book.getCategory().getName());
+            }
+
+            return dto; // BookDto রিটার্ন করি
+        }
+
+        return null; // যদি Book না পাওয়া যায়, null রিটার্ন করি
     }
 
     /**
-     * Finds a book by its ID
-     * আইডি ব্যবহার করে একটি বই খুঁজে বের করে
-     * @param id The ID of the book (বইয়ের আইডি)
-     * @return The found book (খুঁজে পাওয়া বই)
-     * @throws NoSuchElementException if book not found (যদি বই না পাওয়া যায়)
+     * Book ডাটাবেসে সেভ বা আপডেট করার মেথড
      */
     @Override
-    public Book getBookById(Long id) {
-        // Uses repository's findById() method
-        // রিপোজিটোরির findById() মেথড ব্যবহার করে
-        return bookRepository.findById(id).get();
+    public void saveBook(BookDto dto) {
+        Book book = new Book(); // নতুন Book entity তৈরি করি
+
+        if (dto.getId() != null) { // যদি BookDto তে id থাকে (মানে এটা আপডেট)
+            book.setId(dto.getId()); // সেট করে দেই যাতে আপডেট হয়, না হলে নতুন এন্ট্রি হবে
+        }
+
+        book.setTitle(dto.getTitle()); // Book এর title সেট করি
+        book.setAuthor(dto.getAuthor()); // author সেট করি
+        book.setIsbn(dto.getIsbn()); // isbn সেট করি
+
+        Optional<Category> optionalCategory = categoryRepo.findById(dto.getCategoryId()); // Category খুঁজি dto থেকে পাওয়া categoryId দিয়ে
+        if (optionalCategory.isPresent()) { // যদি Category পাওয়া যায়
+            book.setCategory(optionalCategory.get()); // Book এর সাথে Category সেট করি
+        }
+
+        bookRepo.save(book); // Book entity ডাটাবেসে সেভ বা আপডেট করি
     }
 
     /**
-     * Deletes a book by its ID
-     * আইডি ব্যবহার করে একটি বই মুছে ফেলে
-     * @param id The ID of the book to delete (মুছে ফেলার বইয়ের আইডি)
+     * নির্দিষ্ট id এর বই ডিলিট করার মেথড
      */
     @Override
-    public void deleteBookById(Long id) {
-        // Uses repository's deleteById() method
-        // রিপোজিটোরির deleteById() মেথড ব্যবহার করে
-        bookRepository.deleteById(id);
+    public void deleteBook(Long id) {
+        bookRepo.deleteById(id); // BookRepository থেকে ওই id এর বই ডিলিট করি
     }
 }

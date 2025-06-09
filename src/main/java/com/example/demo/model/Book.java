@@ -6,91 +6,80 @@ import jakarta.persistence.*;
  * Book entity class representing a book in the database
  * বই এনটিটি ক্লাস যা ডাটাবেসে একটি বইকে রিপ্রেজেন্ট করে
  */
-@Entity  // Marks this class as a JPA entity (ডাটাবেস টেবিলের সাথে ম্যাপ হবে)
-@Table(name = "books")  // Specifies the table name (টেবিলের নাম নির্দিষ্ট করে)
+@Entity // এই অ্যানোটেশনটি বলে দেয় যে এটি একটি JPA Entity (অর্থাৎ এটি একটি ডাটাবেস টেবিলের সাথে সম্পর্কিত)
+@Table(name = "books") // এই Entity টি ডাটাবেসে 'books' নামের টেবিলের সাথে ম্যাপ হবে
 public class Book {
 
-    @Id  // Marks this field as primary key (প্রাইমারি কী হিসেবে চিহ্নিত)
-    @GeneratedValue(strategy = GenerationType.IDENTITY)  // Auto-increment ID (অটো-ইনক্রিমেন্ট আইডি)
-    private Long id;  // Unique identifier for each book (প্রতিটি বইয়ের ইউনিক আইডি)
+    @Id // প্রাইমারি কী হিসেবে ব্যবহৃত হবে
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // অটো ইনক্রিমেন্ট হবে (MySQL এর মতো)
+    private Long id; // প্রতিটি বইয়ের জন্য ইউনিক আইডি
 
-    @Column(nullable = false)  // This field cannot be null (শূন্য/null হতে পারবে না)
-    private String title;  // Title of the book (বইয়ের শিরোনাম)
+    @Column(nullable = false) // ডাটাবেসে এই কলামটি null হবে না
+    private String title; // বইয়ের শিরোনাম
 
-    @Column(nullable = false)  // This field cannot be null (শূন্য/null হতে পারবে না)
-    private String author;  // Author of the book (বইয়ের লেখক)
+    @Column(nullable = false)
+    private String author; // বইয়ের লেখক
 
-    @Column(nullable = false)  // This field cannot be null (শূন্য/null হতে পারবে না)
-    private String isbn;  // International Standard Book Number (বইয়ের আইএসবিএন নম্বর)
+    @Column(nullable = false)
+    private String isbn; // বইয়ের ISBN নাম্বার
 
-    // ========== CONSTRUCTORS ========== //
+    // একটি বই একটি ক্যাটেগরির অধীনে থাকবে (ManyToOne)
+    @ManyToOne
+    @JoinColumn(name = "category_id") // books টেবিলে category_id নামে একটি ফরেন কি কলাম থাকবে
+    private Category category;
 
-    /**
-     * Default constructor (required by JPA)
-     * ডিফল্ট কনস্ট্রাক্টর (JPA এর জন্য প্রয়োজনীয়)
-     */
-    public Book() {}
-
-    /**
-     * Parameterized constructor for creating new books
-     * নতুন বই তৈরি করার জন্য প্যারামিটারযুক্ত কনস্ট্রাক্টর
-     * @param title - Book title (বইয়ের শিরোনাম)
-     * @param author - Book author (বইয়ের লেখক)
-     * @param isbn - Book ISBN (বইয়ের আইএসবিএন)
-     */
-    public Book(String title, String author, String isbn) {
+    // সব ফিল্ডসহ কনস্ট্রাক্টর (ডাটা সেট করার জন্য কাজে লাগে)
+    public Book(Long id, String title, String author, String isbn, Category category) {
+        this.id = id;
         this.title = title;
         this.author = author;
         this.isbn = isbn;
+        this.category = category;
     }
 
-    // ========== GETTERS AND SETTERS ========== //
+    // ডিফল্ট কনস্ট্রাক্টর (Spring/ORM ফ্রেমওয়ার্কের জন্য প্রয়োজন হয়)
+    public Book() {
+    }
 
-    /**
-     * Get book ID
-     * বইয়ের আইডি পাওয়ার মেথড
-     */
-    public Long getId() { return id; }
+    // Getter & Setter methods (প্রতিটি প্রোপার্টির মান নিতে ও সেট করতে ব্যবহৃত হয়)
 
-    /**
-     * Set book ID
-     * বইয়ের আইডি সেট করার মেথড
-     */
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    /**
-     * Get book title
-     * বইয়ের শিরোনাম পাওয়ার মেথড
-     */
-    public String getTitle() { return title; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    /**
-     * Set book title
-     * বইয়ের শিরোনাম সেট করার মেথড
-     */
-    public void setTitle(String title) { this.title = title; }
+    public String getTitle() {
+        return title;
+    }
 
-    /**
-     * Get book author
-     * বইয়ের লেখক পাওয়ার মেথড
-     */
-    public String getAuthor() { return author; }
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-    /**
-     * Set book author
-     * বইয়ের লেখক সেট করার মেথড
-     */
-    public void setAuthor(String author) { this.author = author; }
+    public String getAuthor() {
+        return author;
+    }
 
-    /**
-     * Get book ISBN
-     * বইয়ের আইএসবিএন পাওয়ার মেথড
-     */
-    public String getIsbn() { return isbn; }
+    public void setAuthor(String author) {
+        this.author = author;
+    }
 
-    /**
-     * Set book ISBN
-     * বইয়ের আইএসবিএন সেট করার মেথড
-     */
-    public void setIsbn(String isbn) { this.isbn = isbn; }
+    public String getIsbn() {
+        return isbn;
+    }
+
+    public void setIsbn(String isbn) {
+        this.isbn = isbn;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
 }
